@@ -3,4 +3,8 @@ module "ec2_instance" {
 
   name          = var.instance_name
   instance_type = var.instance_type
+
+  tags = {
+    Owner = "abbas"
+  }
 }

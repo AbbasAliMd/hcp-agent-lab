@@ -1,0 +1,8 @@
+# Files the Terraform CLI does not upload when you run a remote plan from
+# your laptop (HCP Terraform does not need them).
+.git/
+.github/
+*.md
+.env
+*.tfvars
+*.tfvars.json

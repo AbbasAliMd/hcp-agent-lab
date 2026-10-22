@@ -1,0 +1,30 @@
+# Local provider/module cache
+.terraform/
+
+# State lives in HCP Terraform, never in git
+*.tfstate
+*.tfstate.*
+
+# Crash logs
+crash.log
+crash.*.log
+
+# Variable files can contain secrets (this project uses workspace variables)
+*.tfvars
+*.tfvars.json
+
+# Override files and CLI configuration
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
+# Saved plans
+*.tfplan
+
+# Lock files written by the modules' unit tests (only root lock files matter)
+**/modules/**/.terraform.lock.hcl
+
+# NOTE: do commit the root .terraform.lock.hcl

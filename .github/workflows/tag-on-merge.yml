@@ -1,0 +1,61 @@
+name: Auto Tag on AWS Deploy Label
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [master]
+
+jobs:
+  tag-from-label:
+    # 1. PR must be merged (not just closed)
+    # 2. At least one label must contain 'aws-deploy:'
+    if: >
+      github.event.pull_request.merged == true &&
+      contains(join(github.event.pull_request.labels.*.name, ','), 'aws-deploy:')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract Tag from Label
+        id: parse_label
+        env:
+          LABELS: ${{ toJson(github.event.pull_request.labels) }}
+        run: |
+          git fetch --tags
+
+          # Find first label matching 'aws-deploy:{tag-name}'
+          MATCHING_LABEL=$(echo "$LABELS" | jq -r '.[] | select(.name | startswith("aws-deploy:")) | .name' | head -n 1)
+
+          # Strip 'aws-deploy:' prefix to get the custom tag name
+          TAG_PREFIX="${MATCHING_LABEL#aws-deploy:}"
+          echo "Extracted custom prefix: $TAG_PREFIX"
+
+          # Base tag format: {tag-name}-YYYYMMDD
+          BASE_DATE=$(date +%Y%m%d)
+          TAG_NAME="${TAG_PREFIX}-${BASE_DATE}"
+
+          # Append incrementing suffix if exact tag exists
+          COUNTER=2
+          while git rev-parse "refs/tags/$TAG_NAME" >/dev/null 2>&1; do
+            TAG_NAME="${TAG_PREFIX}-${BASE_DATE}.${COUNTER}"
+            COUNTER=$((COUNTER + 1))
+          done
+
+          echo "Final Tag: $TAG_NAME"
+          echo "tag_name=$TAG_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Create and Push Git Tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          TAG="${{ steps.parse_label.outputs.tag_name }}"
+
+          git tag -a "$TAG" -m "Automated release tag for PR #${{ github.event.pull_request.number }}"
+          git push origin "$TAG"

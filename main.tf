@@ -5,6 +5,6 @@ module "ec2_instance" {
   instance_type = var.instance_type
 
   tags = {
-    Owner = "fargate-single-mode-off"
+    Owner = "fargate-single-mode-on"
   }
 }

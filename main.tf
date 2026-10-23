@@ -5,7 +5,7 @@ module "ec2_instance" {
   instance_type = var.instance_type
 
   tags = {
-    Owner = "managed-ec2-single-mode-off"
+    Owner = "managed-ec2-single-mode-on"
   }
 }
 
